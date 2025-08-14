@@ -534,8 +534,261 @@ class NetworkingApp {
     }
 
     showOSIModel() {
-        // Create OSI model visualization
-        this.showNotification('OSI Model visualization loaded', 'success');
+        // Create interactive OSI model visualization
+        this.createInteractiveOSIModel();
+    }
+
+    createInteractiveOSIModel() {
+        // Remove any existing OSI visualization
+        const existingViz = document.getElementById('osi-visualization');
+        if (existingViz) {
+            existingViz.remove();
+        }
+
+        const osiContainer = document.createElement('div');
+        osiContainer.id = 'osi-visualization';
+        osiContainer.style.cssText = `
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 600px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        `;
+
+        const title = document.createElement('h2');
+        title.textContent = '🌐 Interactive OSI Model';
+        title.style.cssText = `
+            margin: 0;
+            color: #4facfe;
+            font-size: 24px;
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✗';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        `;
+        closeBtn.addEventListener('click', () => osiContainer.remove());
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        const layersContainer = document.createElement('div');
+        layersContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 480px;
+            overflow-y: auto;
+        `;
+
+        const osiLayers = [
+            {
+                number: 7,
+                name: 'Application',
+                description: 'User interface and network services',
+                examples: ['HTTP', 'FTP', 'SMTP', 'DNS', 'HTTPS', 'SSH'],
+                color: '#ff6b6b',
+                functions: ['User interface', 'Network services', 'File transfers', 'Email']
+            },
+            {
+                number: 6,
+                name: 'Presentation',
+                description: 'Data encryption, compression, translation',
+                examples: ['SSL/TLS', 'JPEG', 'ASCII', 'MPEG', 'GIF', 'AES'],
+                color: '#ff9500',
+                functions: ['Encryption', 'Compression', 'Data translation', 'Format conversion']
+            },
+            {
+                number: 5,
+                name: 'Session',
+                description: 'Session management and control',
+                examples: ['NetBIOS', 'RPC', 'SQL sessions', 'X11', 'PPTP'],
+                color: '#ffcc00',
+                functions: ['Session establishment', 'Session maintenance', 'Session termination', 'Checkpointing']
+            },
+            {
+                number: 4,
+                name: 'Transport',
+                description: 'End-to-end data delivery',
+                examples: ['TCP', 'UDP', 'SPX', 'SCTP', 'DCCP'],
+                color: '#4facfe',
+                functions: ['Reliability', 'Flow control', 'Error detection', 'Segmentation']
+            },
+            {
+                number: 3,
+                name: 'Network',
+                description: 'Routing and logical addressing',
+                examples: ['IP', 'ICMP', 'OSPF', 'BGP', 'RIP', 'EIGRP'],
+                color: '#00d2ff',
+                functions: ['Routing', 'Logical addressing', 'Path determination', 'Packet forwarding']
+            },
+            {
+                number: 2,
+                name: 'Data Link',
+                description: 'Frame formatting and error detection',
+                examples: ['Ethernet', 'WiFi', 'PPP', 'ATM', 'Frame Relay'],
+                color: '#41b883',
+                functions: ['Frame synchronization', 'Error detection', 'Flow control', 'MAC addressing']
+            },
+            {
+                number: 1,
+                name: 'Physical',
+                description: 'Physical transmission of raw bits',
+                examples: ['Cables', 'Fiber optics', 'Radio waves', 'Electrical signals'],
+                color: '#34495e',
+                functions: ['Bit transmission', 'Physical topology', 'Signal encoding', 'Hardware specs']
+            }
+        ];
+
+        let selectedLayer = null;
+
+        osiLayers.forEach(layer => {
+            const layerElement = document.createElement('div');
+            layerElement.className = 'osi-layer';
+            layerElement.style.cssText = `
+                background: linear-gradient(135deg, ${layer.color}20, ${layer.color}10);
+                border-left: 4px solid ${layer.color};
+                border-radius: 8px;
+                padding: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            `;
+
+            layerElement.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin: 0; color: ${layer.color}; font-size: 18px;">
+                            Layer ${layer.number}: ${layer.name}
+                        </h3>
+                        <p style="margin: 5px 0; color: var(--text-secondary); font-size: 14px;">
+                            ${layer.description}
+                        </p>
+                    </div>
+                    <div style="font-size: 24px; color: ${layer.color}; opacity: 0.7;">
+                        ${layer.number}
+                    </div>
+                </div>
+                <div class="layer-details" style="
+                    display: none;
+                    margin-top: 15px;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                ">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <h4 style="margin: 0 0 10px 0; color: ${layer.color};">Key Functions</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary);">
+                                ${layer.functions.map(func => `<li>${func}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 10px 0; color: ${layer.color};">Examples</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${layer.examples.map(example => `
+                                    <span style="
+                                        background: ${layer.color}30;
+                                        color: ${layer.color};
+                                        padding: 3px 8px;
+                                        border-radius: 12px;
+                                        font-size: 12px;
+                                        border: 1px solid ${layer.color}50;
+                                    ">${example}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click event to expand/collapse layer details
+            layerElement.addEventListener('click', () => {
+                const details = layerElement.querySelector('.layer-details');
+                const isExpanded = details.style.display === 'block';
+
+                // Collapse all other layers
+                layersContainer.querySelectorAll('.layer-details').forEach(d => {
+                    d.style.display = 'none';
+                });
+                layersContainer.querySelectorAll('.osi-layer').forEach(l => {
+                    l.style.transform = 'scale(1)';
+                    l.style.boxShadow = 'none';
+                });
+
+                if (!isExpanded) {
+                    details.style.display = 'block';
+                    layerElement.style.transform = 'scale(1.02)';
+                    layerElement.style.boxShadow = `0 10px 30px ${layer.color}30`;
+                    selectedLayer = layer.number;
+                } else {
+                    selectedLayer = null;
+                }
+            });
+
+            // Add hover effects
+            layerElement.addEventListener('mouseenter', () => {
+                if (selectedLayer !== layer.number) {
+                    layerElement.style.transform = 'scale(1.01)';
+                    layerElement.style.boxShadow = `0 5px 15px rgba(0, 0, 0, 0.2)`;
+                }
+            });
+
+            layerElement.addEventListener('mouseleave', () => {
+                if (selectedLayer !== layer.number) {
+                    layerElement.style.transform = 'scale(1)';
+                    layerElement.style.boxShadow = 'none';
+                }
+            });
+
+            layersContainer.appendChild(layerElement);
+        });
+
+        const footer = document.createElement('div');
+        footer.style.cssText = `
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        `;
+        footer.innerHTML = '💡 Click on any layer to learn more about its functions and protocols!';
+
+        osiContainer.appendChild(header);
+        osiContainer.appendChild(layersContainer);
+        osiContainer.appendChild(footer);
+        document.body.appendChild(osiContainer);
+
+        // Add entrance animation
+        osiContainer.style.opacity = '0';
+        osiContainer.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => {
+            osiContainer.style.transition = 'all 0.3s ease';
+            osiContainer.style.opacity = '1';
+            osiContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+
+        this.showNotification('🌐 Interactive OSI Model loaded! Click layers to explore.', 'success');
     }
 
     showTCPIPStack() {
