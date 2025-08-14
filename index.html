@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Networking Learning Platform</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-animation">
+            <div class="network-nodes">
+                <div class="node"></div>
+                <div class="node"></div>
+                <div class="node"></div>
+                <div class="connection"></div>
+                <div class="connection"></div>
+            </div>
+            <h2>Initializing Network...</h2>
+        </div>
+    </div>
+
+    <!-- Navigation Sidebar -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h1><i class="fas fa-network-wired"></i> NetLearn</h1>
+            <button id="sidebar-toggle" class="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="chapter-nav">
+                <div class="chapter-item" data-chapter="intro">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Introduction</span>
+                    <div class="chapter-preview">Fundamentals of computer networking</div>
+                </div>
+                <div class="chapter-item" data-chapter="protocols">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Network Protocols</span>
+                    <div class="chapter-preview">TCP/IP, HTTP, DNS, DHCP protocols</div>
+                </div>
+                <div class="chapter-item" data-chapter="topologies">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Network Topologies</span>
+                    <div class="chapter-preview">LAN, WAN, mesh, star configurations</div>
+                </div>
+                <div class="chapter-item" data-chapter="routing">
+                    <i class="fas fa-route"></i>
+                    <span>Routing & Switching</span>
+                    <div class="chapter-preview">Packet routing and switching mechanisms</div>
+                </div>
+                <div class="chapter-item" data-chapter="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Network Security</span>
+                    <div class="chapter-preview">Firewalls, encryption, attack prevention</div>
+                </div>
+                <div class="chapter-item" data-chapter="labs">
+                    <i class="fas fa-flask"></i>
+                    <span>Interactive Labs</span>
+                    <div class="chapter-preview">Hands-on networking experiments</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- AI Assistant Panel -->
+    <div id="ai-assistant" class="ai-assistant">
+        <div class="ai-header">
+            <h3><i class="fas fa-robot"></i> AI Tutor</h3>
+            <button id="ai-toggle" class="ai-toggle">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="ai-content">
+            <div class="ai-chat">
+                <div class="ai-message">
+                    <div class="message ai">
+                        <i class="fas fa-robot"></i>
+                        <p>Hello! I'm your AI networking tutor. Ask me anything about networking concepts, or I can explain what you're currently viewing.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-input">
+                <input type="text" id="ai-question" placeholder="Ask me about networking...">
+                <button id="ai-send"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="main-content">
+        <header class="content-header">
+            <h1 id="chapter-title">Welcome to Interactive Networking</h1>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 15%"></div>
+            </div>
+        </header>
+
+        <!-- Chapter Content Container -->
+        <div id="chapter-content" class="chapter-content">
+            <!-- Introduction Chapter (Default) -->
+            <section id="intro-chapter" class="chapter active">
+                <div class="chapter-intro">
+                    <h2>Computer Networking Fundamentals</h2>
+                    <p class="chapter-description">
+                        Explore the fascinating world of computer networks through interactive visualizations,
+                        real-time simulations, and AI-powered learning experiences.
+                    </p>
+                </div>
+
+                <!-- Interactive Network Overview -->
+                <div class="visualization-container">
+                    <h3>Network Overview Simulation</h3>
+                    <canvas id="network-canvas" class="interactive-canvas"></canvas>
+                    <div class="canvas-controls">
+                        <button class="control-btn" id="start-simulation">
+                            <i class="fas fa-play"></i> Start Simulation
+                        </button>
+                        <button class="control-btn" id="pause-simulation">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button class="control-btn" id="reset-simulation">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Concept Cards -->
+                <div class="concept-grid">
+                    <div class="concept-card" data-concept="osi-model">
+                        <div class="card-icon"><i class="fas fa-layer-group"></i></div>
+                        <h4>OSI Model</h4>
+                        <p>Explore the 7-layer network model</p>
+                        <div class="card-interactive">
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                    </div>
+                    <div class="concept-card" data-concept="tcp-ip">
+                        <div class="card-icon"><i class="fas fa-network-wired"></i></div>
+                        <h4>TCP/IP Stack</h4>
+                        <p>Understand internet protocols</p>
+                        <div class="card-interactive">
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                    </div>
+                    <div class="concept-card" data-concept="packet-flow">
+                        <div class="card-icon"><i class="fas fa-paper-plane"></i></div>
+                        <h4>Packet Flow</h4>
+                        <p>Watch data travel across networks</p>
+                        <div class="card-interactive">
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Quiz Panel -->
+        <div id="quiz-panel" class="quiz-panel hidden">
+            <div class="quiz-header">
+                <h3>Quick Quiz</h3>
+                <button id="close-quiz" class="close-btn">×</button>
+            </div>
+            <div class="quiz-content">
+                <div class="question">
+                    <p id="quiz-question">Loading question...</p>
+                    <div class="quiz-options" id="quiz-options">
+                        <!-- Options will be dynamically generated -->
+                    </div>
+                </div>
+                <div class="quiz-controls">
+                    <button id="submit-answer" class="quiz-btn">Submit Answer</button>
+                    <button id="next-question" class="quiz-btn hidden">Next Question</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button id="quiz-fab" class="fab" title="Take Quiz">
+            <i class="fas fa-question-circle"></i>
+        </button>
+        <button id="lab-fab" class="fab" title="Interactive Lab">
+            <i class="fas fa-flask"></i>
+        </button>
+        <button id="help-fab" class="fab" title="Get Help">
+            <i class="fas fa-lightbulb"></i>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="scripts/main.js"></script>
+    <script src="scripts/networking-sim.js"></script>
+    <script src="scripts/ai-assistant.js"></script>
+    <script src="scripts/quiz-system.js"></script>
+    <script src="scripts/animations.js"></script>
+</body>
+</html>
