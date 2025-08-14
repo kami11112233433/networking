@@ -964,6 +964,343 @@ class DijkstraVisualization {
     }
 }
 
+// Bus Topology Visualization
+class BusTopologyViz {
+    constructor() {
+        this.backbone = null;
+        this.nodes = [];
+        this.container = null;
+    }
+
+    create(nodes) {
+        this.nodes = nodes;
+        return this.render();
+    }
+
+    render() {
+        const container = document.createElement('div');
+        container.className = 'bus-topology-container';
+        container.style.cssText = `
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        `;
+
+        // Create backbone line
+        const backbone = document.createElement('div');
+        backbone.className = 'bus-backbone';
+        backbone.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 2px;
+            transform: translateY(-50%);
+        `;
+        container.appendChild(backbone);
+
+        // Create nodes along the backbone
+        this.nodes.forEach((node, index) => {
+            const nodeEl = this.createNode(node, index);
+            container.appendChild(nodeEl);
+        });
+
+        return container;
+    }
+
+    createNode(node, index) {
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'topology-node';
+        nodeEl.style.cssText = `
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #667eea, #764ba2);
+            border-radius: 50%;
+            border: 2px solid #4facfe;
+            left: ${15 + (index * 70 / this.nodes.length)}%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+        
+        nodeEl.textContent = node.id || (index + 1);
+        
+        // Add connection line to backbone
+        const connector = document.createElement('div');
+        connector.style.cssText = `
+            position: absolute;
+            width: 2px;
+            height: 30px;
+            background: #4facfe;
+            left: 50%;
+            top: 100%;
+            transform: translateX(-50%);
+        `;
+        nodeEl.appendChild(connector);
+
+        // Add hover effects
+        nodeEl.addEventListener('mouseenter', () => {
+            nodeEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            nodeEl.style.boxShadow = '0 0 20px rgba(79, 172, 254, 0.6)';
+        });
+
+        nodeEl.addEventListener('mouseleave', () => {
+            nodeEl.style.transform = 'translate(-50%, -50%) scale(1)';
+            nodeEl.style.boxShadow = 'none';
+        });
+
+        return nodeEl;
+    }
+}
+
+// Ring Topology Visualization
+class RingTopologyViz {
+    constructor() {
+        this.nodes = [];
+        this.container = null;
+    }
+
+    create(nodes) {
+        this.nodes = nodes;
+        return this.render();
+    }
+
+    render() {
+        const container = document.createElement('div');
+        container.className = 'ring-topology-container';
+        container.style.cssText = `
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        `;
+
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 80;
+
+        // Create ring connections
+        this.createRingConnections(container, centerX, centerY, radius);
+
+        // Create nodes in a circle
+        this.nodes.forEach((node, index) => {
+            const angle = (2 * Math.PI * index) / this.nodes.length;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            
+            const nodeEl = this.createNode(node, x, y, index);
+            container.appendChild(nodeEl);
+        });
+
+        return container;
+    }
+
+    createRingConnections(container, centerX, centerY, radius) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        `;
+
+        for (let i = 0; i < this.nodes.length; i++) {
+            const angle1 = (2 * Math.PI * i) / this.nodes.length;
+            const angle2 = (2 * Math.PI * ((i + 1) % this.nodes.length)) / this.nodes.length;
+            
+            const x1 = centerX + radius * Math.cos(angle1);
+            const y1 = centerY + radius * Math.sin(angle1);
+            const x2 = centerX + radius * Math.cos(angle2);
+            const y2 = centerY + radius * Math.sin(angle2);
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', '#4facfe');
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('stroke-linecap', 'round');
+            
+            svg.appendChild(line);
+        }
+
+        container.appendChild(svg);
+    }
+
+    createNode(node, x, y, index) {
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'topology-node';
+        nodeEl.style.cssText = `
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #667eea, #764ba2);
+            border-radius: 50%;
+            border: 2px solid #4facfe;
+            left: ${x}px;
+            top: ${y}px;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        `;
+        
+        nodeEl.textContent = node.id || (index + 1);
+
+        // Add hover effects
+        nodeEl.addEventListener('mouseenter', () => {
+            nodeEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            nodeEl.style.boxShadow = '0 0 20px rgba(79, 172, 254, 0.6)';
+        });
+
+        nodeEl.addEventListener('mouseleave', () => {
+            nodeEl.style.transform = 'translate(-50%, -50%) scale(1)';
+            nodeEl.style.boxShadow = 'none';
+        });
+
+        return nodeEl;
+    }
+}
+
+// OSPF Simulation
+class OSPFSimulation {
+    constructor() {
+        this.areas = new Map();
+        this.routers = new Map();
+        this.lsdb = new Map(); // Link State Database
+    }
+
+    createArea(areaId) {
+        this.areas.set(areaId, {
+            id: areaId,
+            routers: [],
+            networks: []
+        });
+    }
+
+    addRouter(routerId, areaId) {
+        const router = {
+            id: routerId,
+            area: areaId,
+            neighbors: [],
+            interfaces: [],
+            lsa: null
+        };
+        this.routers.set(routerId, router);
+        
+        if (this.areas.has(areaId)) {
+            this.areas.get(areaId).routers.push(routerId);
+        }
+    }
+
+    simulate() {
+        console.log('Starting OSPF simulation...');
+        this.floodLSAs();
+        this.calculateRoutes();
+        return this.generateVisualization();
+    }
+
+    floodLSAs() {
+        // Simulate LSA flooding
+        console.log('Flooding LSAs across OSPF areas');
+    }
+
+    calculateRoutes() {
+        // Simulate SPF algorithm
+        console.log('Calculating shortest path first routes');
+    }
+
+    generateVisualization() {
+        const container = document.createElement('div');
+        container.className = 'ospf-simulation';
+        container.innerHTML = `
+            <h3>OSPF Protocol Simulation</h3>
+            <p>Open Shortest Path First routing protocol simulation</p>
+            <div class="ospf-areas"></div>
+        `;
+        return container;
+    }
+}
+
+// BGP Simulation
+class BGPSimulation {
+    constructor() {
+        this.autonomousSystems = new Map();
+        this.peeringRelationships = [];
+        this.routingTable = new Map();
+    }
+
+    createAS(asNumber) {
+        this.autonomousSystems.set(asNumber, {
+            number: asNumber,
+            routers: [],
+            networks: [],
+            policies: []
+        });
+    }
+
+    establishPeering(as1, as2, type = 'eBGP') {
+        this.peeringRelationships.push({
+            as1, as2, type,
+            status: 'established'
+        });
+    }
+
+    simulate() {
+        console.log('Starting BGP simulation...');
+        this.exchangeRoutes();
+        this.applyPolicies();
+        return this.generateVisualization();
+    }
+
+    exchangeRoutes() {
+        // Simulate BGP route exchange
+        console.log('Exchanging BGP routes between ASes');
+    }
+
+    applyPolicies() {
+        // Apply routing policies
+        console.log('Applying BGP routing policies');
+    }
+
+    generateVisualization() {
+        const container = document.createElement('div');
+        container.className = 'bgp-simulation';
+        container.innerHTML = `
+            <h3>BGP Protocol Simulation</h3>
+            <p>Border Gateway Protocol inter-AS routing simulation</p>
+            <div class="bgp-topology"></div>
+        `;
+        return container;
+    }
+}
+
 // Export the simulation classes
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -974,7 +1311,11 @@ if (typeof module !== 'undefined' && module.exports) {
         DHCPSimulation,
         StarTopologyViz,
         MeshTopologyViz,
-        DijkstraVisualization
+        BusTopologyViz,
+        RingTopologyViz,
+        DijkstraVisualization,
+        OSPFSimulation,
+        BGPSimulation
     };
 }
 

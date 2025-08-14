@@ -534,18 +534,752 @@ class NetworkingApp {
     }
 
     showOSIModel() {
-        // Create OSI model visualization
-        this.showNotification('OSI Model visualization loaded', 'success');
+        // Create interactive OSI model visualization
+        this.createInteractiveOSIModel();
+    }
+
+    createInteractiveOSIModel() {
+        // Remove any existing OSI visualization
+        const existingViz = document.getElementById('osi-visualization');
+        if (existingViz) {
+            existingViz.remove();
+        }
+
+        const osiContainer = document.createElement('div');
+        osiContainer.id = 'osi-visualization';
+        osiContainer.style.cssText = `
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 600px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        `;
+
+        const title = document.createElement('h2');
+        title.textContent = '🌐 Interactive OSI Model';
+        title.style.cssText = `
+            margin: 0;
+            color: #4facfe;
+            font-size: 24px;
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✗';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        `;
+        closeBtn.addEventListener('click', () => osiContainer.remove());
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        const layersContainer = document.createElement('div');
+        layersContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 480px;
+            overflow-y: auto;
+        `;
+
+        const osiLayers = [
+            {
+                number: 7,
+                name: 'Application',
+                description: 'User interface and network services',
+                examples: ['HTTP', 'FTP', 'SMTP', 'DNS', 'HTTPS', 'SSH'],
+                color: '#ff6b6b',
+                functions: ['User interface', 'Network services', 'File transfers', 'Email']
+            },
+            {
+                number: 6,
+                name: 'Presentation',
+                description: 'Data encryption, compression, translation',
+                examples: ['SSL/TLS', 'JPEG', 'ASCII', 'MPEG', 'GIF', 'AES'],
+                color: '#ff9500',
+                functions: ['Encryption', 'Compression', 'Data translation', 'Format conversion']
+            },
+            {
+                number: 5,
+                name: 'Session',
+                description: 'Session management and control',
+                examples: ['NetBIOS', 'RPC', 'SQL sessions', 'X11', 'PPTP'],
+                color: '#ffcc00',
+                functions: ['Session establishment', 'Session maintenance', 'Session termination', 'Checkpointing']
+            },
+            {
+                number: 4,
+                name: 'Transport',
+                description: 'End-to-end data delivery',
+                examples: ['TCP', 'UDP', 'SPX', 'SCTP', 'DCCP'],
+                color: '#4facfe',
+                functions: ['Reliability', 'Flow control', 'Error detection', 'Segmentation']
+            },
+            {
+                number: 3,
+                name: 'Network',
+                description: 'Routing and logical addressing',
+                examples: ['IP', 'ICMP', 'OSPF', 'BGP', 'RIP', 'EIGRP'],
+                color: '#00d2ff',
+                functions: ['Routing', 'Logical addressing', 'Path determination', 'Packet forwarding']
+            },
+            {
+                number: 2,
+                name: 'Data Link',
+                description: 'Frame formatting and error detection',
+                examples: ['Ethernet', 'WiFi', 'PPP', 'ATM', 'Frame Relay'],
+                color: '#41b883',
+                functions: ['Frame synchronization', 'Error detection', 'Flow control', 'MAC addressing']
+            },
+            {
+                number: 1,
+                name: 'Physical',
+                description: 'Physical transmission of raw bits',
+                examples: ['Cables', 'Fiber optics', 'Radio waves', 'Electrical signals'],
+                color: '#34495e',
+                functions: ['Bit transmission', 'Physical topology', 'Signal encoding', 'Hardware specs']
+            }
+        ];
+
+        let selectedLayer = null;
+
+        osiLayers.forEach(layer => {
+            const layerElement = document.createElement('div');
+            layerElement.className = 'osi-layer';
+            layerElement.style.cssText = `
+                background: linear-gradient(135deg, ${layer.color}20, ${layer.color}10);
+                border-left: 4px solid ${layer.color};
+                border-radius: 8px;
+                padding: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            `;
+
+            layerElement.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin: 0; color: ${layer.color}; font-size: 18px;">
+                            Layer ${layer.number}: ${layer.name}
+                        </h3>
+                        <p style="margin: 5px 0; color: var(--text-secondary); font-size: 14px;">
+                            ${layer.description}
+                        </p>
+                    </div>
+                    <div style="font-size: 24px; color: ${layer.color}; opacity: 0.7;">
+                        ${layer.number}
+                    </div>
+                </div>
+                <div class="layer-details" style="
+                    display: none;
+                    margin-top: 15px;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                ">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <h4 style="margin: 0 0 10px 0; color: ${layer.color};">Key Functions</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary);">
+                                ${layer.functions.map(func => `<li>${func}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 10px 0; color: ${layer.color};">Examples</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${layer.examples.map(example => `
+                                    <span style="
+                                        background: ${layer.color}30;
+                                        color: ${layer.color};
+                                        padding: 3px 8px;
+                                        border-radius: 12px;
+                                        font-size: 12px;
+                                        border: 1px solid ${layer.color}50;
+                                    ">${example}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click event to expand/collapse layer details
+            layerElement.addEventListener('click', () => {
+                const details = layerElement.querySelector('.layer-details');
+                const isExpanded = details.style.display === 'block';
+
+                // Collapse all other layers
+                layersContainer.querySelectorAll('.layer-details').forEach(d => {
+                    d.style.display = 'none';
+                });
+                layersContainer.querySelectorAll('.osi-layer').forEach(l => {
+                    l.style.transform = 'scale(1)';
+                    l.style.boxShadow = 'none';
+                });
+
+                if (!isExpanded) {
+                    details.style.display = 'block';
+                    layerElement.style.transform = 'scale(1.02)';
+                    layerElement.style.boxShadow = `0 10px 30px ${layer.color}30`;
+                    selectedLayer = layer.number;
+                } else {
+                    selectedLayer = null;
+                }
+            });
+
+            // Add hover effects
+            layerElement.addEventListener('mouseenter', () => {
+                if (selectedLayer !== layer.number) {
+                    layerElement.style.transform = 'scale(1.01)';
+                    layerElement.style.boxShadow = `0 5px 15px rgba(0, 0, 0, 0.2)`;
+                }
+            });
+
+            layerElement.addEventListener('mouseleave', () => {
+                if (selectedLayer !== layer.number) {
+                    layerElement.style.transform = 'scale(1)';
+                    layerElement.style.boxShadow = 'none';
+                }
+            });
+
+            layersContainer.appendChild(layerElement);
+        });
+
+        const footer = document.createElement('div');
+        footer.style.cssText = `
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        `;
+        footer.innerHTML = '💡 Click on any layer to learn more about its functions and protocols!';
+
+        osiContainer.appendChild(header);
+        osiContainer.appendChild(layersContainer);
+        osiContainer.appendChild(footer);
+        document.body.appendChild(osiContainer);
+
+        // Add entrance animation
+        osiContainer.style.opacity = '0';
+        osiContainer.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => {
+            osiContainer.style.transition = 'all 0.3s ease';
+            osiContainer.style.opacity = '1';
+            osiContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+
+        this.showNotification('🌐 Interactive OSI Model loaded! Click layers to explore.', 'success');
     }
 
     showTCPIPStack() {
         // Create TCP/IP stack visualization
-        this.showNotification('TCP/IP Stack visualization loaded', 'success');
+        this.createTCPIPStackVisualization();
+    }
+
+    createTCPIPStackVisualization() {
+        // Remove any existing visualization
+        const existingViz = document.getElementById('tcpip-visualization');
+        if (existingViz) {
+            existingViz.remove();
+        }
+
+        const tcpipContainer = document.createElement('div');
+        tcpipContainer.id = 'tcpip-visualization';
+        tcpipContainer.style.cssText = `
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        `;
+
+        const title = document.createElement('h2');
+        title.textContent = '🌐 TCP/IP Protocol Stack';
+        title.style.cssText = `
+            margin: 0;
+            color: #4facfe;
+            font-size: 24px;
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✗';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        `;
+        closeBtn.addEventListener('click', () => tcpipContainer.remove());
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        const layersContainer = document.createElement('div');
+        layersContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 400px;
+        `;
+
+        const tcpipLayers = [
+            {
+                number: 4,
+                name: 'Application Layer',
+                description: 'User applications and network services',
+                protocols: ['HTTP', 'HTTPS', 'FTP', 'SMTP', 'DNS', 'DHCP', 'SSH', 'Telnet'],
+                color: '#ff6b6b',
+                osiEquivalent: 'Layers 5-7 (Session, Presentation, Application)'
+            },
+            {
+                number: 3,
+                name: 'Transport Layer',
+                description: 'End-to-end communication and reliability',
+                protocols: ['TCP', 'UDP'],
+                color: '#4facfe',
+                osiEquivalent: 'Layer 4 (Transport)'
+            },
+            {
+                number: 2,
+                name: 'Internet Layer',
+                description: 'Routing and logical addressing',
+                protocols: ['IP', 'IPv6', 'ICMP', 'ARP', 'OSPF', 'BGP'],
+                color: '#00d2ff',
+                osiEquivalent: 'Layer 3 (Network)'
+            },
+            {
+                number: 1,
+                name: 'Network Access Layer',
+                description: 'Physical network interface',
+                protocols: ['Ethernet', 'WiFi', 'PPP', 'Frame Relay'],
+                color: '#41b883',
+                osiEquivalent: 'Layers 1-2 (Physical, Data Link)'
+            }
+        ];
+
+        tcpipLayers.forEach(layer => {
+            const layerElement = document.createElement('div');
+            layerElement.style.cssText = `
+                background: linear-gradient(135deg, ${layer.color}20, ${layer.color}10);
+                border-left: 6px solid ${layer.color};
+                border-radius: 10px;
+                padding: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                flex: 1;
+            `;
+
+            layerElement.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 8px 0; color: ${layer.color}; font-size: 18px;">
+                            ${layer.name}
+                        </h3>
+                        <p style="margin: 0 0 12px 0; color: var(--text-secondary); font-size: 14px;">
+                            ${layer.description}
+                        </p>
+                        <div style="margin-bottom: 10px;">
+                            <span style="font-size: 12px; color: var(--text-secondary);">
+                                OSI Equivalent: ${layer.osiEquivalent}
+                            </span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            ${layer.protocols.map(protocol => `
+                                <span style="
+                                    background: ${layer.color}30;
+                                    color: ${layer.color};
+                                    padding: 4px 10px;
+                                    border-radius: 12px;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    border: 1px solid ${layer.color}50;
+                                ">${protocol}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div style="
+                        font-size: 36px; 
+                        color: ${layer.color}; 
+                        opacity: 0.7;
+                        font-weight: bold;
+                        margin-left: 20px;
+                    ">
+                        ${layer.number}
+                    </div>
+                </div>
+            `;
+
+            // Add hover effects
+            layerElement.addEventListener('mouseenter', () => {
+                layerElement.style.transform = 'scale(1.02)';
+                layerElement.style.boxShadow = `0 10px 30px ${layer.color}30`;
+            });
+
+            layerElement.addEventListener('mouseleave', () => {
+                layerElement.style.transform = 'scale(1)';
+                layerElement.style.boxShadow = 'none';
+            });
+
+            layersContainer.appendChild(layerElement);
+        });
+
+        tcpipContainer.appendChild(header);
+        tcpipContainer.appendChild(layersContainer);
+        document.body.appendChild(tcpipContainer);
+
+        // Add entrance animation
+        tcpipContainer.style.opacity = '0';
+        tcpipContainer.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => {
+            tcpipContainer.style.transition = 'all 0.3s ease';
+            tcpipContainer.style.opacity = '1';
+            tcpipContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+
+        this.showNotification('🌐 TCP/IP Stack visualization loaded!', 'success');
     }
 
     showPacketFlow() {
-        // Start packet flow animation
-        this.startSimulation();
+        // Start enhanced packet flow animation
+        this.createPacketFlowVisualization();
+    }
+
+    createPacketFlowVisualization() {
+        // Remove any existing visualization
+        const existingViz = document.getElementById('packet-flow-visualization');
+        if (existingViz) {
+            existingViz.remove();
+        }
+
+        const packetContainer = document.createElement('div');
+        packetContainer.id = 'packet-flow-visualization';
+        packetContainer.style.cssText = `
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px;
+            height: 600px;
+            background: rgba(26, 31, 46, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        `;
+
+        const title = document.createElement('h2');
+        title.textContent = '📡 Interactive Packet Flow Simulation';
+        title.style.cssText = `
+            margin: 0;
+            color: #4facfe;
+            font-size: 24px;
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✗';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        `;
+        closeBtn.addEventListener('click', () => packetContainer.remove());
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        // Create network canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 860;
+        canvas.height = 400;
+        canvas.style.cssText = `
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        `;
+
+        const ctx = canvas.getContext('2d');
+
+        // Network nodes
+        const nodes = [
+            { id: 'Client', x: 50, y: 200, color: '#4facfe', type: 'device' },
+            { id: 'Router1', x: 200, y: 150, color: '#ff9500', type: 'router' },
+            { id: 'Router2', x: 350, y: 200, color: '#ff9500', type: 'router' },
+            { id: 'Router3', x: 500, y: 150, color: '#ff9500', type: 'router' },
+            { id: 'Switch', x: 650, y: 200, color: '#41b883', type: 'switch' },
+            { id: 'Server', x: 800, y: 200, color: '#f093fb', type: 'device' }
+        ];
+
+        // Network connections
+        const connections = [
+            { from: 0, to: 1 },
+            { from: 1, to: 2 },
+            { from: 2, to: 3 },
+            { from: 3, to: 4 },
+            { from: 4, to: 5 },
+            { from: 1, to: 3 } // Alternative path
+        ];
+
+        // Packets
+        let packets = [];
+        let animationId = null;
+
+        function drawNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw connections
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            connections.forEach(conn => {
+                const from = nodes[conn.from];
+                const to = nodes[conn.to];
+                
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+            });
+
+            // Draw nodes
+            nodes.forEach(node => {
+                // Node circle
+                ctx.fillStyle = node.color;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Node border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Node label
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.id, node.x, node.y - 35);
+
+                // Node type icon
+                const icons = {
+                    'device': '💻',
+                    'router': '🔀',
+                    'switch': '🔀'
+                };
+                ctx.font = '16px Arial';
+                ctx.fillText(icons[node.type] || '⚡', node.x, node.y + 5);
+            });
+
+            // Draw packets
+            packets.forEach(packet => {
+                ctx.fillStyle = packet.color;
+                ctx.shadowColor = packet.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(packet.x, packet.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Packet trail
+                ctx.fillStyle = packet.color + '40';
+                for (let i = 1; i <= 3; i++) {
+                    const trailX = packet.x - (packet.dx * i * 5);
+                    const trailY = packet.y - (packet.dy * i * 5);
+                    ctx.beginPath();
+                    ctx.arc(trailX, trailY, 8 - i * 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function animatePackets() {
+            packets.forEach((packet, index) => {
+                packet.x += packet.dx;
+                packet.y += packet.dy;
+
+                // Check if packet reached destination
+                const target = nodes[packet.target];
+                const distance = Math.sqrt((packet.x - target.x) ** 2 + (packet.y - target.y) ** 2);
+                
+                if (distance < 20) {
+                    packets.splice(index, 1);
+                    
+                    // Create response packet
+                    setTimeout(() => {
+                        createPacket(packet.target, packet.source, '#f093fb');
+                    }, 500);
+                }
+            });
+
+            drawNetwork();
+            animationId = requestAnimationFrame(animatePackets);
+        }
+
+        function createPacket(fromIndex, toIndex, color = '#4facfe') {
+            const from = nodes[fromIndex];
+            const to = nodes[toIndex];
+            const distance = Math.sqrt((to.x - from.x) ** 2 + (to.y - from.y) ** 2);
+            const speed = 3;
+            
+            packets.push({
+                x: from.x,
+                y: from.y,
+                dx: (to.x - from.x) / distance * speed,
+                dy: (to.y - from.y) / distance * speed,
+                source: fromIndex,
+                target: toIndex,
+                color: color
+            });
+        }
+
+        // Controls
+        const controls = document.createElement('div');
+        controls.style.cssText = `
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        `;
+
+        const sendRequestBtn = document.createElement('button');
+        sendRequestBtn.textContent = '📤 Send HTTP Request';
+        sendRequestBtn.style.cssText = `
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        `;
+        sendRequestBtn.addEventListener('click', () => {
+            createPacket(0, 5, '#4facfe'); // Client to Server
+        });
+
+        const sendPingBtn = document.createElement('button');
+        sendPingBtn.textContent = '🏓 Send Ping';
+        sendPingBtn.style.cssText = `
+            background: linear-gradient(135deg, #ff9500, #ff6b00);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        `;
+        sendPingBtn.addEventListener('click', () => {
+            createPacket(0, 5, '#ff9500'); // Ping packet
+        });
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = '🧹 Clear Packets';
+        clearBtn.style.cssText = `
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        `;
+        clearBtn.addEventListener('click', () => {
+            packets = [];
+        });
+
+        // Add hover effects to buttons
+        [sendRequestBtn, sendPingBtn, clearBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'scale(1.05)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        controls.appendChild(sendRequestBtn);
+        controls.appendChild(sendPingBtn);
+        controls.appendChild(clearBtn);
+
+        packetContainer.appendChild(header);
+        packetContainer.appendChild(canvas);
+        packetContainer.appendChild(controls);
+        document.body.appendChild(packetContainer);
+
+        // Start animation
+        drawNetwork();
+        animatePackets();
+
+        // Cleanup on close
+        const originalClose = closeBtn.onclick;
+        closeBtn.onclick = () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            originalClose();
+        };
+
+        // Add entrance animation
+        packetContainer.style.opacity = '0';
+        packetContainer.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => {
+            packetContainer.style.transition = 'all 0.3s ease';
+            packetContainer.style.opacity = '1';
+            packetContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+
+        this.showNotification('📡 Packet flow simulation loaded! Try sending packets.', 'success');
     }
 
     sendAIQuestion() {

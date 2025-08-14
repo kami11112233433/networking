@@ -1,0 +1,44 @@
+/* Local icon definitions to replace FontAwesome */
+.fas, .fa {
+    font-family: 'Icons', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Using Unicode symbols as fallbacks */
+.fa-bars::before { content: "☰"; }
+.fa-robot::before { content: "🤖"; }
+.fa-chevron-down::before { content: "▼"; }
+.fa-chevron-up::before { content: "▲"; }
+.fa-paper-plane::before { content: "✈"; }
+.fa-microphone::before { content: "🎤"; }
+.fa-home::before { content: "🏠"; }
+.fa-network-wired::before { content: "🌐"; }
+.fa-project-diagram::before { content: "📊"; }
+.fa-route::before { content: "🛣"; }
+.fa-shield-alt::before { content: "🛡"; }
+.fa-flask::before { content: "🧪"; }
+.fa-play::before { content: "▶"; }
+.fa-pause::before { content: "⏸"; }
+.fa-stop::before { content: "⏹"; }
+.fa-refresh::before { content: "🔄"; }
+.fa-fire::before { content: "🔥"; }
+.fa-crown::before { content: "👑"; }
+.fa-medal::before { content: "🏅"; }
+.fa-bolt::before { content: "⚡"; }
+.fa-baby::before { content: "👶"; }
+.fa-volume-up::before { content: "🔊"; }
+.fa-volume-mute::before { content: "🔇"; }
+.fa-cog::before { content: "⚙"; }
+.fa-info::before { content: "ℹ"; }
+.fa-check::before { content: "✓"; }
+.fa-times::before { content: "✗"; }
+.fa-plus::before { content: "+"; }
+.fa-minus::before { content: "-"; }
+.fa-arrow-left::before { content: "←"; }
+.fa-arrow-right::before { content: "→"; }
+.fa-arrow-up::before { content: "↑"; }
+.fa-arrow-down::before { content: "↓"; }

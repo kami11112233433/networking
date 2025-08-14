@@ -144,48 +144,153 @@ class AIAssistant {
     }
 
     setupVoiceRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        this.recognition = new SpeechRecognition();
-        
-        this.recognition.continuous = false;
-        this.recognition.interimResults = false;
-        this.recognition.lang = 'en-US';
-        
-        this.recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            this.processVoiceInput(transcript);
-        };
-        
-        this.recognition.onerror = (event) => {
-            console.log('Speech recognition error:', event.error);
-        };
+        // Check for speech recognition support
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.lang = 'en-US';
+            this.isListening = false;
+            
+            this.recognition.onstart = () => {
+                this.isListening = true;
+                const voiceBtn = document.querySelector('.voice-input-btn');
+                if (voiceBtn) {
+                    voiceBtn.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a24)';
+                    voiceBtn.innerHTML = '🎤 Listening...';
+                }
+            };
+            
+            this.recognition.onend = () => {
+                this.isListening = false;
+                const voiceBtn = document.querySelector('.voice-input-btn');
+                if (voiceBtn) {
+                    voiceBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                    voiceBtn.innerHTML = '🎤';
+                }
+            };
+            
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                this.processVoiceInput(transcript);
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+                this.isListening = false;
+                const voiceBtn = document.querySelector('.voice-input-btn');
+                if (voiceBtn) {
+                    voiceBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                    voiceBtn.innerHTML = '🎤';
+                }
+            };
+            
+            // Setup text-to-speech
+            if ('speechSynthesis' in window) {
+                this.setupTextToSpeech();
+            }
+        }
         
         // Add voice input button
         this.addVoiceInputButton();
     }
 
+    setupTextToSpeech() {
+        this.speechSynthesis = window.speechSynthesis;
+        this.voiceEnabled = false;
+        
+        // Add voice controls to AI assistant
+        this.addVoiceControls();
+    }
+
+    addVoiceControls() {
+        const aiHeader = document.querySelector('.ai-header');
+        if (!aiHeader) return;
+        
+        const voiceControls = document.createElement('div');
+        voiceControls.className = 'voice-controls';
+        voiceControls.style.cssText = `
+            display: flex;
+            gap: 5px;
+            margin-left: auto;
+        `;
+        
+        const voiceToggle = document.createElement('button');
+        voiceToggle.id = 'voice-toggle';
+        voiceToggle.innerHTML = '🔇';
+        voiceToggle.title = 'Toggle AI voice responses';
+        voiceToggle.style.cssText = `
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        `;
+        
+        voiceToggle.addEventListener('click', () => {
+            this.voiceEnabled = !this.voiceEnabled;
+            voiceToggle.innerHTML = this.voiceEnabled ? '🔊' : '🔇';
+            voiceToggle.style.color = this.voiceEnabled ? '#4facfe' : 'var(--text-secondary)';
+            
+            // Show feedback
+            this.addAIMessage(
+                this.voiceEnabled ? 
+                '🔊 Voice responses enabled! I will now speak my answers.' :
+                '🔇 Voice responses disabled.',
+                'ai'
+            );
+        });
+        
+        voiceControls.appendChild(voiceToggle);
+        aiHeader.appendChild(voiceControls);
+    }
+
     addVoiceInputButton() {
         const aiInput = document.querySelector('.ai-input');
-        if (aiInput) {
+        if (aiInput && !document.querySelector('.voice-input-btn')) {
             const voiceBtn = document.createElement('button');
-            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceBtn.innerHTML = '🎤';
             voiceBtn.className = 'voice-input-btn';
+            voiceBtn.title = 'Click to speak your question';
             voiceBtn.style.cssText = `
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 8px;
-                padding: var(--space-sm);
+                padding: 8px 12px;
                 color: var(--text-secondary);
                 cursor: pointer;
-                transition: all var(--transition-fast);
+                transition: all 0.3s ease;
+                margin-left: 5px;
+                font-size: 14px;
             `;
             
             voiceBtn.addEventListener('click', () => {
-                this.recognition.start();
-                voiceBtn.style.color = '#f44336';
-                setTimeout(() => {
-                    voiceBtn.style.color = 'var(--text-secondary)';
-                }, 3000);
+                if (this.recognition) {
+                    if (this.isListening) {
+                        this.recognition.stop();
+                    } else {
+                        this.recognition.start();
+                    }
+                } else {
+                    this.addAIMessage('🚫 Voice recognition is not supported in your browser.', 'ai');
+                }
+            });
+            
+            voiceBtn.addEventListener('mouseenter', () => {
+                voiceBtn.style.background = 'rgba(79, 172, 254, 0.3)';
+                voiceBtn.style.borderColor = '#4facfe';
+            });
+            
+            voiceBtn.addEventListener('mouseleave', () => {
+                if (!this.isListening) {
+                    voiceBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                    voiceBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                }
             });
             
             aiInput.appendChild(voiceBtn);
@@ -196,8 +301,50 @@ class AIAssistant {
         const questionInput = document.getElementById('ai-question');
         if (questionInput) {
             questionInput.value = transcript;
-            this.processQuestion(transcript);
+            
+            // Show what was heard
+            this.addAIMessage(`🎤 I heard: "${transcript}"`, 'user');
+            
+            // Auto-process the question
+            setTimeout(() => {
+                this.processQuestion(transcript);
+            }, 500);
         }
+    }
+
+    speakResponse(text) {
+        if (!this.voiceEnabled || !this.speechSynthesis) return;
+        
+        // Cancel any ongoing speech
+        this.speechSynthesis.cancel();
+        
+        // Clean text for speech (remove markdown, emojis, etc.)
+        const cleanText = text
+            .replace(/[🔊🔇🎤🤖📊🛣🛡🧪⚡👑🏅🔥👶]/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/```.*?```/gs, 'code block')
+            .replace(/`(.*?)`/g, '$1');
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
+        
+        // Use a pleasant voice if available
+        const voices = this.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => 
+            voice.name.includes('Female') || 
+            voice.name.includes('Samantha') || 
+            voice.name.includes('Karen') ||
+            voice.lang.startsWith('en')
+        );
+        
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+        
+        this.speechSynthesis.speak(utterance);
     }
 
     setupSmartSuggestions() {
@@ -578,14 +725,22 @@ class AIAssistant {
         
         if (type === 'ai') {
             messageContent.innerHTML = `
-                <i class="fas fa-robot"></i>
+                <div class="message-icon">🤖</div>
                 <div class="message-content">
                     <p>${this.formatMessage(message)}</p>
                 </div>
             `;
+            
+            // Speak the message if voice is enabled
+            if (this.voiceEnabled && message && !message.startsWith('🎤')) {
+                // Add a small delay to let the message appear first
+                setTimeout(() => {
+                    this.speakResponse(message);
+                }, 500);
+            }
         } else {
             messageContent.innerHTML = `
-                <i class="fas fa-user"></i>
+                <div class="message-icon">👤</div>
                 <div class="message-content">
                     <p>${message}</p>
                 </div>
@@ -598,7 +753,7 @@ class AIAssistant {
         // Scroll to bottom
         chatContainer.scrollTop = chatContainer.scrollHeight;
         
-        // Add typing animation
+        // Add typing animation for AI messages
         if (type === 'ai') {
             this.animateTyping(messageContent.querySelector('p'));
         }
